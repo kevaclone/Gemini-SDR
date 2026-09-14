@@ -1,0 +1,6 @@
+{
+  "name": "RTL-SDR C++ Visual Studio GUI",
+  "description": "Standalone C++ GUI for RTL-SDR / RTL2832U USB with Visual Studio solution, Dear ImGui & DirectX 11 architecture, DSP demodulators, and interactive SDR simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
