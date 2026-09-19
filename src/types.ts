@@ -1,4 +1,29 @@
-export type DemodMode = 'WBFM' | 'NBFM' | 'AM' | 'USB' | 'LSB' | 'CW';
+export type DemodMode = 'WBFM' | 'NBFM' | 'AM' | 'USB' | 'LSB' | 'CW' | 'DAB+';
+
+export interface DabService {
+  id: number;
+  name: string;
+  shortName: string;
+  subchannelId: number;
+  bitrateKbps: number;
+  codec: 'HE-AAC v2' | 'HE-AAC v1' | 'AAC-LC' | 'MP2';
+  protectionLevel: string;
+  dlsText: string;
+  genre: string;
+  serviceType?: 'commercial' | 'public';
+  isExclusive?: boolean;
+  streamUrl?: string;
+}
+
+export interface DabEnsemble {
+  id: string;
+  label: string;
+  channelBlock: string; // e.g., '9A', '9B', '9C', '10A', '11C', '12B'
+  freqHz: number;
+  eid: string;
+  location: string;
+  services: DabService[];
+}
 
 export interface FrequencyBand {
   id: string;

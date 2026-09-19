@@ -241,20 +241,20 @@ export const TuningDial: React.FC<Props> = ({
           onTouchStart={() => startContinuousStep(-1)}
           onTouchEnd={stopContinuousStep}
           title="Step Frequency Down (Click or Hold to scan down)"
-          className={`flex-1 h-20 rounded-md flex flex-col items-center justify-center gap-1 transition-all border select-none cursor-pointer ${
+          className={`flex-1 h-28 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all border select-none cursor-pointer ${
             isLocked
               ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
-              : 'bg-gradient-to-b from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 active:from-cyan-950 active:to-slate-900 border-slate-700 text-slate-200 shadow-md active:scale-95'
+              : 'bg-gradient-to-b from-[#131b2c] to-[#0a0f19] hover:from-[#1c273e] hover:to-[#101726] active:from-cyan-950 active:to-[#080d16] border-slate-700/80 text-slate-200 shadow-lg shadow-black/50 active:scale-[0.98]'
           }`}
         >
-          <ChevronDown className="w-5 h-5 text-cyan-400" />
-          <span className="text-[11px] font-mono font-bold tracking-wider">DOWN</span>
-          <span className="text-[9px] font-mono text-slate-400">
+          <ChevronDown className="w-6 h-6 text-cyan-400 transition-transform group-hover:translate-y-0.5" />
+          <span className="text-xs font-mono font-extrabold tracking-widest text-cyan-300">DOWN</span>
+          <span className="text-[11px] font-mono font-extrabold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-700/50 shadow-inner">
             -{effectiveStep >= 1000000 ? `${effectiveStep / 1000000}M` : effectiveStep >= 1000 ? `${effectiveStep / 1000}k` : `${effectiveStep}Hz`}
           </span>
         </button>
 
-        {/* Rotary Dial Center Wheel */}
+        {/* Rotary Dial Center Wheel (Large 112px) */}
         <div
           ref={dialRef}
           onWheel={handleWheel}
@@ -262,12 +262,12 @@ export const TuningDial: React.FC<Props> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           title="Scroll mouse wheel or click and drag to spin tuning dial"
-          className={`relative w-24 h-24 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform select-none touch-none shrink-0 ${
+          className={`relative w-28 h-28 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform select-none touch-none shrink-0 ${
             isLocked ? 'cursor-not-allowed opacity-60' : ''
           }`}
           style={{
-            background: 'radial-gradient(circle, #1a2233 0%, #0d121c 65%, #05080e 100%)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1), inset 0 -3px 6px rgba(0,0,0,0.8), 0 0 0 2px #223046',
+            background: 'radial-gradient(circle, #1e283d 0%, #0e1422 65%, #060912 100%)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.12), inset 0 -4px 8px rgba(0,0,0,0.85), 0 0 0 2px #2a3b56',
           }}
         >
           {/* Tick marks ring */}
@@ -278,11 +278,11 @@ export const TuningDial: React.FC<Props> = ({
             {ticks.map((tickAngle) => (
               <div
                 key={tickAngle}
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-2"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-2.5"
                 style={{
-                  transformOrigin: '50% 48px',
+                  transformOrigin: '50% 56px',
                   transform: `rotate(${tickAngle}deg)`,
-                  backgroundColor: tickAngle % 45 === 0 ? '#38bdf8' : '#475569',
+                  backgroundColor: tickAngle % 45 === 0 ? '#38bdf8' : '#64748b',
                 }}
               />
             ))}
@@ -290,28 +290,28 @@ export const TuningDial: React.FC<Props> = ({
 
           {/* Inner Knob Texture & Finger Dimple */}
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center relative transition-transform"
+            className="w-20 h-20 rounded-full flex items-center justify-center relative transition-transform"
             style={{
               transform: `rotate(${rotationAngle}deg)`,
-              background: 'radial-gradient(circle, #25334d 0%, #161e2e 70%, #0b101a 100%)',
-              boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.7)',
-              border: '1px solid #334155',
+              background: 'radial-gradient(circle, #293855 0%, #172133 70%, #0c121e 100%)',
+              boxShadow: 'inset 0 2px 5px rgba(255,255,255,0.18), 0 3px 10px rgba(0,0,0,0.75)',
+              border: '1.5px solid #3b4d6b',
             }}
           >
             {/* Optical Finger Dimple Indicator */}
             <div
-              className="absolute top-2 w-3.5 h-3.5 rounded-full shadow-inner border border-slate-700"
+              className="absolute top-2.5 w-4 h-4 rounded-full shadow-inner border border-sky-600/40"
               style={{
-                background: 'radial-gradient(circle, #0b111a 30%, #1e293b 100%)',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9), 0 0 4px rgba(56, 189, 248, 0.4)',
+                background: 'radial-gradient(circle, #0c1422 30%, #1e2b40 100%)',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.95), 0 0 6px rgba(56, 189, 248, 0.6)',
               }}
             >
-              <div className="w-1 h-1 rounded-full bg-cyan-400 mx-auto mt-1" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mx-auto mt-1 shadow-sm shadow-cyan-300" />
             </div>
 
-            {/* Center Cap */}
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 border border-slate-700/80 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+            {/* Center Cap with Needle */}
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#0a0f18] to-[#1e293b] border border-slate-600/80 flex items-center justify-center shadow-md">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
             </div>
           </div>
         </div>
@@ -326,24 +326,24 @@ export const TuningDial: React.FC<Props> = ({
           onTouchStart={() => startContinuousStep(1)}
           onTouchEnd={stopContinuousStep}
           title="Step Frequency Up (Click or Hold to scan up)"
-          className={`flex-1 h-20 rounded-md flex flex-col items-center justify-center gap-1 transition-all border select-none cursor-pointer ${
+          className={`flex-1 h-28 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all border select-none cursor-pointer ${
             isLocked
               ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
-              : 'bg-gradient-to-b from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 active:from-cyan-950 active:to-slate-900 border-slate-700 text-slate-200 shadow-md active:scale-95'
+              : 'bg-gradient-to-b from-[#131b2c] to-[#0a0f19] hover:from-[#1c273e] hover:to-[#101726] active:from-cyan-950 active:to-[#080d16] border-slate-700/80 text-slate-200 shadow-lg shadow-black/50 active:scale-[0.98]'
           }`}
         >
-          <ChevronUp className="w-5 h-5 text-cyan-400" />
-          <span className="text-[11px] font-mono font-bold tracking-wider">UP</span>
-          <span className="text-[9px] font-mono text-slate-400">
+          <ChevronUp className="w-6 h-6 text-cyan-400 transition-transform group-hover:-translate-y-0.5" />
+          <span className="text-xs font-mono font-extrabold tracking-widest text-cyan-300">UP</span>
+          <span className="text-[11px] font-mono font-extrabold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-700/50 shadow-inner">
             +{effectiveStep >= 1000000 ? `${effectiveStep / 1000000}M` : effectiveStep >= 1000 ? `${effectiveStep / 1000}k` : `${effectiveStep}Hz`}
           </span>
         </button>
       </div>
 
       {/* Step Size Selector Tabs */}
-      <div className="mt-2.5 pt-2 border-t border-slate-800/80">
-        <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-          <span className="font-semibold uppercase tracking-wider text-slate-400">Step Size</span>
+      <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+        <div className="flex items-center justify-between text-[11px] text-slate-300 mb-1.5 font-medium">
+          <span className="font-semibold uppercase tracking-wider text-slate-400">Step Resolution</span>
           <span className="font-mono text-cyan-400 font-bold">
             {effectiveStep >= 1000000
               ? `${(effectiveStep / 1000000).toFixed(1)} MHz`
@@ -354,16 +354,16 @@ export const TuningDial: React.FC<Props> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-5 gap-1 text-[10px] font-mono">
+        <div className="grid grid-cols-5 gap-1.5 text-[11px] font-mono">
           {STEP_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setStepSizeHz(opt.value)}
               disabled={isLocked}
-              className={`py-1 rounded text-center font-medium transition-colors cursor-pointer ${
+              className={`py-1.5 rounded text-center font-bold transition-all border cursor-pointer ${
                 stepSizeHz === opt.value
-                  ? 'bg-cyan-600 text-white font-bold shadow-sm shadow-cyan-600/30'
-                  : 'bg-slate-800/70 hover:bg-slate-700 text-slate-300'
+                  ? 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white border-sky-400 shadow-md shadow-sky-900/40'
+                  : 'bg-slate-900/90 hover:bg-slate-800 text-cyan-300 hover:text-white border-slate-800 hover:border-cyan-500/40'
               } ${isLocked ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               {opt.label}

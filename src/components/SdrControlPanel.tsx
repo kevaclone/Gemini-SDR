@@ -84,6 +84,7 @@ export const SdrControlPanel: React.FC<Props> = ({
 
   const modes: { mode: DemodMode; label: string; desc: string }[] = [
     { mode: 'WBFM', label: 'WBFM', desc: 'FM Broadcast (88-108 MHz)' },
+    { mode: 'DAB+', label: 'DAB+', desc: 'Digital Radio Band III (174-240 MHz)' },
     { mode: 'NBFM', label: 'NBFM', desc: 'Ham / Marine (12.5k / 25k)' },
     { mode: 'AM',   label: 'AM',   desc: 'Aviation / Shortwave' },
     { mode: 'USB',  label: 'USB',  desc: 'Upper Sideband (HF)' },
@@ -92,6 +93,7 @@ export const SdrControlPanel: React.FC<Props> = ({
   ];
 
   const bandwidthPresets = [
+    { label: '1.536M DAB+', val: 1536000 },
     { label: '180k FM', val: 180000 },
     { label: '150k', val: 150000 },
     { label: '25k NFM', val: 25000 },
@@ -103,7 +105,7 @@ export const SdrControlPanel: React.FC<Props> = ({
   ];
 
   return (
-    <div id="sdr-control-panel" className="bg-[#0b0f17] border-r border-slate-800 flex flex-col h-full w-80 shrink-0 text-slate-200 overflow-y-auto select-none">
+    <div id="sdr-control-panel" className="bg-[#0b0f17] border-r border-slate-800 flex flex-col h-full w-[370px] shrink-0 text-slate-200 overflow-y-auto select-none">
       {/* 1. Master Start / Stop & Hardware Config Header */}
       <div className="p-3 border-b border-slate-800 flex items-center justify-between gap-2 bg-[#0e1420]">
         <button
@@ -145,7 +147,7 @@ export const SdrControlPanel: React.FC<Props> = ({
             <Radio className="w-3.5 h-3.5 text-emerald-400" />
             VFO TUNING
           </span>
-          <span className="text-[11px] text-emerald-400 font-mono">RX READY</span>
+          <span className="text-[11px] text-emerald-400 font-mono font-bold">RX READY</span>
         </div>
 
         {isEditingFreq ? (
@@ -202,75 +204,75 @@ export const SdrControlPanel: React.FC<Props> = ({
             id="toggle-numeric-keypad-btn"
             onClick={() => setShowKeypad(!showKeypad)}
             title="Toggle Direct Frequency Keypad"
-            className={`px-3 py-2 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all ${
+            className={`px-3 py-2 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
               showKeypad
                 ? 'bg-sky-500/20 border-sky-400 text-sky-300'
                 : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Hash className="w-3.5 h-3.5" />
+            <Hash className="w-3.5 h-3.5 text-cyan-400" />
             <span>KEYPAD</span>
           </button>
         </div>
 
-        {/* DIRECT NUMERIC KEYPAD */}
+        {/* DIRECT NUMERIC KEYPAD WITH ENLARGED BUTTONS & COLORED FONTS */}
         {showKeypad && (
-          <div className="mt-2.5 p-2 bg-slate-950/90 border border-slate-800 rounded-lg">
-            <div className="flex items-center justify-between mb-1.5 px-1 text-[11px] text-slate-400">
-              <span className="font-semibold text-slate-300 flex items-center gap-1">
-                <Hash className="w-3 h-3 text-sky-400" />
+          <div className="mt-2.5 p-2.5 bg-slate-950/90 border border-slate-800 rounded-lg shadow-inner">
+            <div className="flex items-center justify-between mb-2 px-1 text-xs">
+              <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                <Hash className="w-3.5 h-3.5 text-cyan-400" />
                 DIRECT ENTRY
               </span>
-              <span className="font-mono text-emerald-400 font-bold">
-                {directFreqInput ? `${directFreqInput} MHz` : 'Type or click'}
+              <span className="font-mono text-emerald-400 font-extrabold text-xs">
+                {directFreqInput ? `${directFreqInput} MHz` : 'Ready'}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-1 mb-1.5">
+            <div className="grid grid-cols-3 gap-1.5 mb-2">
               {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'BS'].map((k) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => handleKeypadPress(k)}
-                  className={`py-1.5 text-xs font-mono font-bold rounded transition-colors ${
+                  className={`py-2.5 text-base font-mono font-extrabold rounded-lg transition-all cursor-pointer border shadow-sm ${
                     k === 'BS'
-                      ? 'bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/40 flex items-center justify-center'
-                      : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700'
+                      ? 'bg-gradient-to-b from-rose-950/80 to-rose-900/60 hover:from-rose-900/90 hover:to-rose-800/80 text-rose-300 border-rose-700/60 flex items-center justify-center active:scale-95'
+                      : 'bg-gradient-to-b from-[#131b2c] to-[#0d1320] hover:from-[#1c283f] hover:to-[#131c2d] text-cyan-300 hover:text-cyan-100 border-slate-700/80 hover:border-cyan-500/50 active:scale-95'
                   }`}
                 >
-                  {k === 'BS' ? <Delete className="w-3.5 h-3.5" /> : k}
+                  {k === 'BS' ? <Delete className="w-4 h-4 text-rose-300" /> : k}
                 </button>
               ))}
             </div>
 
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <button
                 type="button"
                 onClick={() => handleKeypadPress('CLR')}
-                className="w-1/3 py-1.5 text-[11px] font-bold rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                className="w-1/3 py-2.5 text-xs font-mono font-extrabold rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 hover:text-rose-100 border border-rose-700/60 transition-all cursor-pointer active:scale-95"
               >
                 CLEAR
               </button>
               <button
                 type="button"
                 onClick={() => handleKeypadPress('ENTER')}
-                className="flex-1 py-1.5 text-xs font-bold rounded bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-900/30 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 text-xs font-mono font-extrabold rounded-lg bg-gradient-to-r from-sky-600 to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-white border border-cyan-400/50 shadow-md shadow-cyan-900/40 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
               >
-                <CornerDownLeft className="w-3.5 h-3.5" />
+                <CornerDownLeft className="w-4 h-4 text-white" />
                 <span>TUNE (ENTER)</span>
               </button>
             </div>
 
-            {/* Quick Step Buttons */}
-            <div className="grid grid-cols-4 gap-1 mt-1.5 pt-1.5 border-t border-slate-800/80">
-              <button onClick={() => stepFreq(-1000000)} className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">-1M</button>
-              <button onClick={() => stepFreq(1000000)}  className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">+1M</button>
-              <button onClick={() => stepFreq(-100000)}  className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">-100k</button>
-              <button onClick={() => stepFreq(100000)}   className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">+100k</button>
-              <button onClick={() => stepFreq(-10000)}   className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">-10k</button>
-              <button onClick={() => stepFreq(10000)}    className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">+10k</button>
-              <button onClick={() => stepFreq(-1000)}    className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">-1k</button>
-              <button onClick={() => stepFreq(1000)}     className="py-1 text-[10px] font-mono font-semibold rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">+1k</button>
+            {/* Quick Step Buttons with High-Contrast Colored Fonts */}
+            <div className="grid grid-cols-4 gap-1.5 mt-2.5 pt-2.5 border-t border-slate-800/80">
+              <button onClick={() => stepFreq(-1000000)} className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#18130a] hover:bg-[#251e10] text-amber-300 hover:text-amber-200 border border-amber-600/50 hover:border-amber-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">-1M</button>
+              <button onClick={() => stepFreq(1000000)}  className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#0a1811] hover:bg-[#10261b] text-emerald-300 hover:text-emerald-200 border border-emerald-600/50 hover:border-emerald-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">+1M</button>
+              <button onClick={() => stepFreq(-100000)}  className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#18130a] hover:bg-[#251e10] text-amber-300 hover:text-amber-200 border border-amber-600/50 hover:border-amber-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">-100k</button>
+              <button onClick={() => stepFreq(100000)}   className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#0a1811] hover:bg-[#10261b] text-emerald-300 hover:text-emerald-200 border border-emerald-600/50 hover:border-emerald-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">+100k</button>
+              <button onClick={() => stepFreq(-10000)}   className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#18130a] hover:bg-[#251e10] text-amber-300 hover:text-amber-200 border border-amber-600/50 hover:border-amber-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">-10k</button>
+              <button onClick={() => stepFreq(10000)}    className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#0a1811] hover:bg-[#10261b] text-emerald-300 hover:text-emerald-200 border border-emerald-600/50 hover:border-emerald-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">+10k</button>
+              <button onClick={() => stepFreq(-1000)}    className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#18130a] hover:bg-[#251e10] text-amber-300 hover:text-amber-200 border border-amber-600/50 hover:border-amber-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">-1k</button>
+              <button onClick={() => stepFreq(1000)}     className="py-2 text-xs font-mono font-extrabold rounded-md bg-[#0a1811] hover:bg-[#10261b] text-emerald-300 hover:text-emerald-200 border border-emerald-600/50 hover:border-emerald-400/70 shadow-sm transition-all active:scale-95 cursor-pointer">+1k</button>
             </div>
           </div>
         )}
@@ -294,7 +296,8 @@ export const SdrControlPanel: React.FC<Props> = ({
               title={m.desc}
               onClick={() => {
                 let defaultBw = demodSettings.bandwidthHz;
-                if (m.mode === 'WBFM') defaultBw = 180000;
+                if (m.mode === 'DAB+') defaultBw = 1536000;
+                else if (m.mode === 'WBFM') defaultBw = 180000;
                 else if (m.mode === 'NBFM') defaultBw = 12500;
                 else if (m.mode === 'AM') defaultBw = 10000;
                 else if (m.mode === 'USB' || m.mode === 'LSB') defaultBw = 2800;
@@ -306,10 +309,10 @@ export const SdrControlPanel: React.FC<Props> = ({
                   bandwidthHz: defaultBw,
                 });
               }}
-              className={`py-1.5 text-xs font-bold rounded transition-colors ${
+              className={`py-2 text-xs font-bold rounded-md transition-all border cursor-pointer ${
                 demodSettings.mode === m.mode
-                  ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white border-sky-400 shadow-md shadow-sky-900/40'
+                  : 'bg-slate-900/90 text-cyan-300 hover:text-white hover:bg-slate-800 border-slate-800 hover:border-cyan-500/40'
               }`}
             >
               {m.label}
@@ -322,14 +325,16 @@ export const SdrControlPanel: React.FC<Props> = ({
           <div className="flex justify-between text-xs text-slate-400 mb-1">
             <span>Filter Bandwidth</span>
             <span className="font-mono text-cyan-400 font-bold">
-              {(demodSettings.bandwidthHz / 1000).toFixed(1)} kHz
+              {demodSettings.bandwidthHz >= 1000000
+                ? `${(demodSettings.bandwidthHz / 1e6).toFixed(3)} MHz`
+                : `${(demodSettings.bandwidthHz / 1000).toFixed(1)} kHz`}
             </span>
           </div>
           <input
             type="range"
             min={200}
-            max={demodSettings.mode === 'WBFM' ? 250000 : 30000}
-            step={demodSettings.mode === 'WBFM' ? 5000 : 200}
+            max={demodSettings.mode === 'DAB+' ? 1750000 : demodSettings.mode === 'WBFM' ? 250000 : 30000}
+            step={demodSettings.mode === 'DAB+' ? 10000 : demodSettings.mode === 'WBFM' ? 5000 : 200}
             value={demodSettings.bandwidthHz}
             onChange={(e) =>
               onDemodSettingsChange({

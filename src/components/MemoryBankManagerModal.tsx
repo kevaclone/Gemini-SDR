@@ -341,10 +341,22 @@ export const MemoryBankManagerModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 select-text">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 select-text"
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerMove={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+    >
       <div
         id="memory-bank-modal"
         className="bg-[#0c101a] border border-slate-700/80 rounded-xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl shadow-black/80 overflow-hidden"
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
       >
         {/* Top Window Header */}
         <div className="bg-[#111726] border-b border-slate-800 px-5 py-3 flex items-center justify-between shrink-0">

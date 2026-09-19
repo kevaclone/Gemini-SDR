@@ -12,6 +12,7 @@ interface Props {
   onSettingsChange: (settings: WaterfallSettings) => void;
   onTuneFrequency: (freqHz: number) => void;
   isStreaming: boolean;
+  isInteractionDisabled?: boolean;
 }
 
 // Color palette maps for waterfall
@@ -68,6 +69,7 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
   onSettingsChange,
   onTuneFrequency,
   isStreaming,
+  isInteractionDisabled = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const spectrumCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -81,8 +83,16 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
   // Buffer state
   const prevSpectrumRef = useRef<Float32Array | null>(null);
   const peakHoldRef = useRef<Float32Array | null>(null);
+  const currentFftRef = useRef<Float32Array | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const phaseRef = useRef<number>(0);
+  const lastWfallTimeRef = useRef<number>(0);
+  const lastRenderTimeRef = useRef<number>(0);
+  const cachedGradientRef = useRef<{ gradient: CanvasGradient; height: number } | null>(null);
+  const rowImgDataRef = useRef<ImageData | null>(null);
+  const offscreenCanvasARef = useRef<HTMLCanvasElement | null>(null);
+  const offscreenCanvasBRef = useRef<HTMLCanvasElement | null>(null);
+  const activePingPongRef = useRef<number>(0);
 
   // Calculate frequency corresponding to an X coordinate
   const getFreqFromX = useCallback(
@@ -108,6 +118,7 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
 
   // Mouse interaction for tuning
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (isInteractionDisabled) return;
     if (!spectrumCanvasRef.current) return;
     const rect = spectrumCanvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -118,6 +129,12 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    if (isInteractionDisabled) {
+      if (isHovering) setIsHovering(false);
+      if (hoverFreq !== null) setHoverFreq(null);
+      if (hoverDbm !== null) setHoverDbm(null);
+      return;
+    }
     if (!spectrumCanvasRef.current) return;
     const rect = spectrumCanvasRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
@@ -162,15 +179,33 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
       }
     }
 
-    const currentFft = new Float32Array(fftSize);
+    if (!currentFftRef.current || currentFftRef.current.length !== fftSize) {
+      currentFftRef.current = new Float32Array(fftSize);
+    }
+    const currentFft = currentFftRef.current;
     const colorFn = COLOR_MAPS[settings.colorMap];
 
-    let lastTime = performance.now();
+    const TARGET_FPS = 30; // 30 FPS throttle prevents display RAM & thread starvation on 120Hz/144Hz displays
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
 
     const render = () => {
+      if (isStreaming) {
+        animFrameRef.current = requestAnimationFrame(render);
+      }
+
       const now = performance.now();
-      const dt = (now - lastTime) / 1000;
-      lastTime = now;
+      // Drop excess frames if monitor refresh rate is 60Hz, 120Hz, 144Hz, or 240Hz
+      if (now - lastRenderTimeRef.current < FRAME_INTERVAL) {
+        return;
+      }
+
+      // If browser tab is minimized or hidden, skip drawing entirely
+      if (document.hidden) {
+        return;
+      }
+
+      const dt = (now - (lastRenderTimeRef.current || now)) / 1000;
+      lastRenderTimeRef.current = now;
       phaseRef.current += dt * 3;
 
       const width = specCanvas.width;
@@ -316,10 +351,14 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
         specCtx.stroke();
       }
 
-      // Live Spectrum Trace Curve
-      const gradient = specCtx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
-      gradient.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+      // Live Spectrum Trace Curve (with cached gradient to eliminate garbage collection pauses)
+      if (!cachedGradientRef.current || cachedGradientRef.current.height !== height) {
+        const g = specCtx.createLinearGradient(0, 0, 0, height);
+        g.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        g.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+        cachedGradientRef.current = { gradient: g, height };
+      }
+      const gradient = cachedGradientRef.current.gradient;
 
       specCtx.beginPath();
       specCtx.moveTo(0, height);
@@ -347,35 +386,78 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
       specCtx.stroke();
 
       // -------------------------------------------------------------
-      // 2. Draw Waterfall Spectrogram
+      // 2. Draw Waterfall Spectrogram (Ping-pong double buffer, zero self-copy)
       // -------------------------------------------------------------
-      // Shift existing waterfall image down by 1 pixel
-      wfallCtx.drawImage(wfallCanvas, 0, 0, wWidth, wHeight - 1, 0, 1, wWidth, wHeight - 1);
+      if (now - lastWfallTimeRef.current >= 33) {
+        lastWfallTimeRef.current = now;
 
-      // Create new top row of pixels
-      const rowImgData = wfallCtx.createImageData(wWidth, 1);
-      const data = rowImgData.data;
+        // Ensure double-buffered ping-pong offscreen canvases exist and match target size
+        if (!offscreenCanvasARef.current) {
+          offscreenCanvasARef.current = document.createElement('canvas');
+        }
+        if (!offscreenCanvasBRef.current) {
+          offscreenCanvasBRef.current = document.createElement('canvas');
+        }
+        const offA = offscreenCanvasARef.current;
+        const offB = offscreenCanvasBRef.current;
 
-      for (let x = 0; x < wWidth; x++) {
-        const binIdx = Math.floor((x / wWidth) * fftSize);
-        const db = currentFft[binIdx];
-        const norm = Math.max(0, Math.min(1, (db - minDb) / dbRange));
-        const [r, g, b] = colorFn(norm);
+        if (offA.width !== wWidth || offA.height !== wHeight) {
+          offA.width = wWidth;
+          offA.height = wHeight;
+          const offInitA = offA.getContext('2d');
+          if (offInitA) {
+            offInitA.fillStyle = '#080c14';
+            offInitA.fillRect(0, 0, wWidth, wHeight);
+          }
+        }
+        if (offB.width !== wWidth || offB.height !== wHeight) {
+          offB.width = wWidth;
+          offB.height = wHeight;
+          const offInitB = offB.getContext('2d');
+          if (offInitB) {
+            offInitB.fillStyle = '#080c14';
+            offInitB.fillRect(0, 0, wWidth, wHeight);
+          }
+        }
 
-        const idx = x * 4;
-        data[idx] = r;
-        data[idx + 1] = g;
-        data[idx + 2] = b;
-        data[idx + 3] = 255;
-      }
-      wfallCtx.putImageData(rowImgData, 0, 0);
+        // Ping-Pong: Read from srcCanvas, write into dstCanvas (never copy onto self)
+        const isAtoB = activePingPongRef.current === 0;
+        const srcCanvas = isAtoB ? offA : offB;
+        const dstCanvas = isAtoB ? offB : offA;
+        const dstCtx = dstCanvas.getContext('2d');
 
-      // Tuned VFO overlay line on waterfall
-      wfallCtx.fillStyle = 'rgba(16, 185, 129, 0.4)';
-      wfallCtx.fillRect(tunedX - 1, 0, 2, wHeight);
+        // Reusable row buffer
+        if (!rowImgDataRef.current || rowImgDataRef.current.width !== wWidth) {
+          rowImgDataRef.current = dstCtx ? dstCtx.createImageData(wWidth, 1) : null;
+        }
+        const rowImgData = rowImgDataRef.current;
 
-      if (isStreaming) {
-        animFrameRef.current = requestAnimationFrame(render);
+        if (dstCtx && rowImgData) {
+          const data = rowImgData.data;
+
+          for (let x = 0; x < wWidth; x++) {
+            const binIdx = Math.floor((x / wWidth) * fftSize);
+            const db = currentFft[binIdx];
+            const norm = Math.max(0, Math.min(1, (db - minDb) / dbRange));
+            const [r, g, b] = colorFn(norm);
+
+            const idx = x * 4;
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          }
+
+          // 1. Shift previous frame from srcCanvas into dstCanvas down by 1px
+          dstCtx.drawImage(srcCanvas, 0, 0, wWidth, wHeight - 1, 0, 1, wWidth, wHeight - 1);
+          // 2. Write newest scanline row directly onto dstCanvas at y=0
+          dstCtx.putImageData(rowImgData, 0, 0);
+          // 3. One-way hardware blit to visible DOM canvas (zero GPU readbacks or pipeline stalls)
+          wfallCtx.drawImage(dstCanvas, 0, 0);
+
+          // Swap ping-pong buffer for next frame
+          activePingPongRef.current = 1 - activePingPongRef.current;
+        }
       }
     };
 
@@ -386,25 +468,38 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
     };
   }, [centerFreqHz, tunedFreqHz, sampleRateHz, bandwidthHz, demodMode, settings, isStreaming, getXFromFreq]);
 
-  // Handle ResizeObserver to keep canvas resolution crisp
+  // Handle ResizeObserver with hysteresis to prevent browser window dragging/resizing from freezing UI
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let lastW = 0;
+    let lastH = 0;
+
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
+        // 4px deadband hysteresis prevents subpixel oscillating layouts when resizing browser window
+        if (width > 0 && height > 0 && (Math.abs(width - lastW) >= 4 || Math.abs(height - lastH) >= 4)) {
+          lastW = width;
+          lastH = height;
+
           const specHeight = Math.floor(height * 0.45);
           const wfallHeight = Math.floor(height * 0.55);
 
+          // Cap internal canvas rendering resolution (max 1024px width)
+          // CSS width: 100% hardware-scales it smoothly, avoiding audio starvation & excessive VRAM readbacks
+          const bufferWidth = Math.min(Math.floor(width), 1024);
+          const bufferSpecH = Math.min(specHeight, 260);
+          const bufferWfallH = Math.min(wfallHeight, 320);
+
           if (spectrumCanvasRef.current) {
-            spectrumCanvasRef.current.width = Math.floor(width);
-            spectrumCanvasRef.current.height = specHeight;
+            spectrumCanvasRef.current.width = bufferWidth;
+            spectrumCanvasRef.current.height = bufferSpecH;
           }
           if (waterfallCanvasRef.current) {
-            waterfallCanvasRef.current.width = Math.floor(width);
-            waterfallCanvasRef.current.height = wfallHeight;
+            waterfallCanvasRef.current.width = bufferWidth;
+            waterfallCanvasRef.current.height = bufferWfallH;
           }
         }
       }
@@ -498,8 +593,12 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
       <div
         ref={containerRef}
         id="spectrum-canvas-stage"
-        className="flex-1 flex flex-col relative cursor-crosshair overflow-hidden"
-        onPointerEnter={() => setIsHovering(true)}
+        className={`flex-1 flex flex-col relative overflow-hidden ${
+          isInteractionDisabled ? 'cursor-default pointer-events-none' : 'cursor-crosshair'
+        }`}
+        onPointerEnter={() => {
+          if (!isInteractionDisabled) setIsHovering(true);
+        }}
         onPointerLeave={() => {
           setIsHovering(false);
           setHoverFreq(null);
@@ -527,6 +626,16 @@ export const SdrSpectrumWaterfall: React.FC<Props> = ({
           id="waterfall-spectrogram-canvas"
           className="w-full flex-1"
         />
+
+        {/* Active Tuned VFO indicator line */}
+        {containerRef.current && (
+          <div
+            className="absolute top-0 bottom-0 pointer-events-none border-l-2 border-emerald-400/70 z-10"
+            style={{
+              left: `${getXFromFreq(tunedFreqHz, containerRef.current.clientWidth)}px`,
+            }}
+          />
+        )}
 
         {/* Hover tuning indicator line */}
         {isHovering && hoverFreq && containerRef.current && (

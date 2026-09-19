@@ -2,6 +2,47 @@ import { MemoryBank } from '../types';
 
 export const DEFAULT_MEMORY_BANKS: MemoryBank[] = [
   {
+    id: 'brisbane-dab-plus',
+    name: 'Brisbane DAB+ Digital Radio',
+    description: 'VHF Band III DAB+ Digital Radio Multiplexes in Brisbane QLD (Blocks 9A, 9B, 9C)',
+    iconName: 'Radio',
+    channels: [
+      {
+        id: 'dab-bne-9a',
+        bankId: 'brisbane-dab-plus',
+        name: 'DAB+ Brisbane 1 (Block 9A)',
+        freqHz: 202928000,
+        mode: 'DAB+',
+        bandwidthHz: 1536000,
+        locationOrService: 'Mount Coot-tha, Brisbane QLD',
+        notes: '4KQ Classic Hits, 4KQ Plus, 4TAB ONE/TWO, 973 Feel Good, ClassicHits Live, Edge Digital, Koffee, Nova1069, NovaNation',
+        tags: ['DAB+', 'Brisbane', 'Commercial', 'HE-AAC v2'],
+      },
+      {
+        id: 'dab-bne-9b',
+        bankId: 'brisbane-dab-plus',
+        name: 'DAB+ Brisbane 2 (Block 9B)',
+        freqHz: 204640000,
+        mode: 'DAB+',
+        bandwidthHz: 1536000,
+        locationOrService: 'Mount Coot-tha, Brisbane QLD',
+        notes: '4BC News, 4BH882, B105, Radar New Music, The Buckle, Triple M, Stardust, Chemist Warehouse, Radio Tab, 97.3 FM, 80s Mix, Nova 106.9',
+        tags: ['DAB+', 'Brisbane', 'Commercial', 'HE-AAC v2'],
+      },
+      {
+        id: 'dab-bne-9c',
+        bankId: 'brisbane-dab-plus',
+        name: 'BR ABC&sbs Radio (Block 9C)',
+        freqHz: 206352000,
+        mode: 'DAB+',
+        bandwidthHz: 1536000,
+        locationOrService: 'Mount Coot-tha, Brisbane QLD',
+        notes: '612 ABC Brisbane, ABC Classic FM, ABC Country, ABC Dig Music, ABC Extra, triple j, ABC Grandstand, ABC Jazz, SBS Chill, SBS PopAsia',
+        tags: ['DAB+', 'Brisbane', 'ABC', 'SBS', 'Public'],
+      },
+    ],
+  },
+  {
     id: 'brisbane-air',
     name: 'Brisbane & SE QLD Air',
     description: 'Brisbane International, Archerfield, Gold Coast, Sunshine Coast & RAAF Amberley Airband frequencies (AM)',

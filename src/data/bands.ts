@@ -2,6 +2,33 @@ import { FrequencyBand } from '../types';
 
 export const FREQUENCY_BANDS: FrequencyBand[] = [
   {
+    id: 'dab_bne_9a',
+    name: 'DAB+ Brisbane 1 (9A - 202.928 MHz)',
+    category: 'Broadcast',
+    freqHz: 202928000,
+    mode: 'DAB+',
+    bandwidthHz: 1536000,
+    description: 'VHF Band III Block 9A: 4KQ Classic Hits, 4KQ Plus, 4TAB, 973 Feel Good, Nova1069, Edge Digital, Koffee, NovaNation',
+  },
+  {
+    id: 'dab_bne_9b',
+    name: 'DAB+ Brisbane 2 (9B - 204.640 MHz)',
+    category: 'Broadcast',
+    freqHz: 204640000,
+    mode: 'DAB+',
+    bandwidthHz: 1536000,
+    description: 'VHF Band III Block 9B: B105, Triple M, 4BC News, 4BH882, Radar, The Buckle, Stardust, Chemist Warehouse, Radio Tab',
+  },
+  {
+    id: 'dab_bne_9c',
+    name: 'DAB+ Brisbane 3 BR ABC&sbs (9C - 206.352 MHz)',
+    category: 'Broadcast',
+    freqHz: 206352000,
+    mode: 'DAB+',
+    bandwidthHz: 1536000,
+    description: 'VHF Band III Block 9C: 612 ABC Brisbane, triple j, ABC Classic, ABC Country, ABC Dig Music, ABC Grandstand, SBS Chill, SBS PopAsia',
+  },
+  {
     id: 'fm_commercial',
     name: 'FM Broadcast (101.1 MHz)',
     category: 'Broadcast',
